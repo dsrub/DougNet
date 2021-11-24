@@ -1,0 +1,8 @@
+.DS_Store
+.ipynb_checkpoints/
+__pycache__/
+mnist.npz
+multilayer_perceptron-4.pdf
+multilayer_perceptron.md
+multilayer_perceptron.pdf
+multilayer_perceptron_files/
