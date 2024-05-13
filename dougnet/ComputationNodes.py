@@ -128,7 +128,7 @@ class sqrt(ComputationNode):
     def __init__(self, x):
         super().__init__([x])
         self.computation = lambda xx: np.sqrt(xx.output) 
-        self.vjps[x] = lambda gg, xx: gg / (2.* np.sqrt(xx.output))
+        self.vjps[x] = lambda gg, xx: gg / (2. * np.sqrt(xx.output))
 
 
 class cos(ComputationNode):
