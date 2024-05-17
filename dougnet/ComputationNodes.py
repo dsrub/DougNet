@@ -1,7 +1,10 @@
+from collections import namedtuple
 import numpy as np
 from dougnet.graph import ComputationNode
 from dougnet.Activations import *
 from dougnet.Losses import *
+
+OUTPUT = namedtuple('Output', ('output', 'cache'), defaults=(None, ()))
 
 class sqr(ComputationNode):
     """An element-wise square computation node.
@@ -14,8 +17,8 @@ class sqr(ComputationNode):
     """
     def __init__(self, x):
         super().__init__([x])
-        self.computation = lambda xx: xx.output ** 2 
-        self.vjps[x] = lambda gg, xx: 2 * xx.output * gg
+        self.computation = lambda xx: OUTPUT(xx.output ** 2)
+        self.vjps[x] = lambda gg, cache, xx: 2 * xx.output * gg
 
 
 class add(ComputationNode):
@@ -34,9 +37,9 @@ class add(ComputationNode):
     """
     def __init__(self, x, y):
         super().__init__([x, y])
-        self.computation = lambda xx, yy: xx.output + yy.output
-        self.vjps[x] = lambda gg, xx, yy: gg
-        self.vjps[y] = lambda gg, xx, yy: gg if xx.output.shape == yy.output.shape \
+        self.computation = lambda xx, yy: OUTPUT(xx.output + yy.output)
+        self.vjps[x] = lambda gg, cache, xx, yy: gg
+        self.vjps[y] = lambda gg, cache, xx, yy: gg if xx.output.shape == yy.output.shape \
         else np.sum(gg, axis=1).reshape(gg.shape[0], 1)
 
 
@@ -54,9 +57,9 @@ class subtract(ComputationNode):
     """
     def __init__(self, x, y):
         super().__init__([x, y])
-        self.computation = lambda xx, yy: xx.output - yy.output
-        self.vjps[x] = lambda gg, xx, yy: gg
-        self.vjps[y] = lambda gg, xx, yy: -gg
+        self.computation = lambda xx, yy: OUTPUT(xx.output - yy.output)
+        self.vjps[x] = lambda gg, cache, xx, yy: gg
+        self.vjps[y] = lambda gg, cache, xx, yy: -gg
 
 
 class mult(ComputationNode):
@@ -75,9 +78,9 @@ class mult(ComputationNode):
     """
     def __init__(self, x, y):
         super().__init__([x, y])
-        self.computation = lambda xx, yy: xx.output * yy.output
-        self.vjps[x] = lambda gg, xx, yy: yy.output * gg
-        self.vjps[y] = lambda gg, xx, yy: xx.output * gg
+        self.computation = lambda xx, yy: OUTPUT(xx.output * yy.output)
+        self.vjps[x] = lambda gg, cache, xx, yy: yy.output * gg
+        self.vjps[y] = lambda gg, cache, xx, yy: xx.output * gg
 
 
 class sigmoid(ComputationNode):
@@ -91,8 +94,8 @@ class sigmoid(ComputationNode):
     """
     def __init__(self, z):
         super().__init__([z])
-        self.computation = lambda zz: Sigmoid.func(zz.output)
-        self.vjps[z] = lambda gg, zz: Sigmoid.deriv(zz.output) * gg
+        self.computation = lambda zz: OUTPUT(Sigmoid.func(zz.output))
+        self.vjps[z] = lambda gg, cache, zz: Sigmoid.deriv(zz.output) * gg
 
 
 class matmult(ComputationNode):
@@ -110,9 +113,9 @@ class matmult(ComputationNode):
     """
     def __init__(self, x, y):
         super().__init__([x, y])
-        self.computation = lambda xx, yy: np.dot(xx.output, yy.output)
-        self.vjps[x] = lambda gg, xx, yy: np.dot(gg, yy.output.T)
-        self.vjps[y] = lambda gg, xx, yy: np.dot(x.output.T, gg)
+        self.computation = lambda xx, yy: OUTPUT(np.dot(xx.output, yy.output))
+        self.vjps[x] = lambda gg, cache, xx, yy: np.dot(gg, yy.output.T)
+        self.vjps[y] = lambda gg, cache, xx, yy: np.dot(x.output.T, gg)
 
 
 class sqrt(ComputationNode):
@@ -127,8 +130,8 @@ class sqrt(ComputationNode):
     """
     def __init__(self, x):
         super().__init__([x])
-        self.computation = lambda xx: np.sqrt(xx.output) 
-        self.vjps[x] = lambda gg, xx: gg / (2. * np.sqrt(xx.output))
+        self.computation = lambda xx: OUTPUT(np.sqrt(xx.output)) 
+        self.vjps[x] = lambda gg, cache, xx: gg / (2. * np.sqrt(xx.output))
 
 
 class cos(ComputationNode):
@@ -142,8 +145,8 @@ class cos(ComputationNode):
     """
     def __init__(self, x):
         super().__init__([x])
-        self.computation = lambda xx: np.cos(xx.output)
-        self.vjps[x] = lambda gg, xx: -np.sin(xx.output) * gg
+        self.computation = lambda xx: OUTPUT(np.cos(xx.output))
+        self.vjps[x] = lambda gg, cache, xx: -np.sin(xx.output) * gg
 
 
 class exp(ComputationNode):
@@ -157,8 +160,8 @@ class exp(ComputationNode):
     """
     def __init__(self, x):
         super().__init__([x])
-        self.computation = lambda xx: np.exp(xx.output)
-        self.vjps[x] = lambda gg, xx: np.exp(xx.output) * gg
+        self.computation = lambda xx: OUTPUT(np.exp(xx.output))
+        self.vjps[x] = lambda gg, cache, xx: np.exp(xx.output) * gg
 
 
 class relu(ComputationNode):
@@ -172,8 +175,8 @@ class relu(ComputationNode):
     """
     def __init__(self, z):
         super().__init__([z])
-        self.computation = lambda zz: Relu.func(zz.output)
-        self.vjps[z] = lambda gg, zz: Relu.deriv(zz.output) * gg
+        self.computation = lambda zz: OUTPUT(Relu.func(zz.output))
+        self.vjps[z] = lambda gg, cache, zz: Relu.deriv(zz.output) * gg
 
 
 class tanh(ComputationNode):
@@ -187,8 +190,8 @@ class tanh(ComputationNode):
     """
     def __init__(self, z):
         super().__init__([z])
-        self.computation = lambda zz: Tanh.func(zz.output)
-        self.vjps[z] = lambda gg, zz: Tanh.deriv(zz.output) * gg
+        self.computation = lambda zz: OUTPUT(Tanh.func(zz.output))
+        self.vjps[z] = lambda gg, cache, zz: Tanh.deriv(zz.output) * gg
 
 
 class softmax(ComputationNode):
@@ -204,7 +207,7 @@ class softmax(ComputationNode):
     """  
     def __init__(self, z):
         super().__init__([z])
-        self.computation = lambda zz: SoftMax.func(zz.output)
+        self.computation = lambda zz: OUTPUT(SoftMax.func(zz.output))
         self.vjps[z] = None
 
 
@@ -230,10 +233,10 @@ class softmax_crossentropy_loss(ComputationNode):
     """
     def __init__(self, Z, Y_ohe, W_loss):
         super().__init__([Z, Y_ohe, W_loss])
-        self.computation = lambda ZZ, YY, WW_loss: SoftmaxCrossEntropyLoss.func(ZZ.output, YY.output) + WW_loss.output
-        self.vjps[Z] = lambda gg, ZZ, YY, WW_loss: (SoftMax.func(ZZ.output) - YY.output) * gg
-        self.vjps[Y_ohe] = lambda gg, ZZ, YY, WW_loss: None
-        self.vjps[W_loss] = lambda gg, ZZ, YY, WW_loss: gg
+        self.computation = lambda ZZ, YY, WW_loss: OUTPUT(SoftmaxCrossEntropyLoss.func(ZZ.output, YY.output) + WW_loss.output)
+        self.vjps[Z] = lambda gg, cache, ZZ, YY, WW_loss: (SoftMax.func(ZZ.output) - YY.output) * gg
+        self.vjps[Y_ohe] = lambda gg, cache, ZZ, YY, WW_loss: None
+        self.vjps[W_loss] = lambda gg, cache, ZZ, YY, WW_loss: gg
 
 
 class l2_loss(ComputationNode):
@@ -259,11 +262,11 @@ class l2_loss(ComputationNode):
     def __init__(self, Z, Y, W_loss):
         super().__init__([Z, Y, W_loss])
 
-        self.computation = lambda ZZ, YY, WW_loss: .5 * np.sum((ZZ.output - YY.output)**2)/YY.output.shape[1] \
-                                                    + WW_loss.output
-        self.vjps[Z] = lambda gg, ZZ, YY, WW_loss: (ZZ.output - YY.output) * gg
-        self.vjps[Y] = lambda gg, ZZ, YY, WW_loss: None
-        self.vjps[W_loss] = lambda gg, ZZ, YY, WW_loss: gg
+        self.computation = lambda ZZ, YY, WW_loss: OUTPUT(.5 * np.sum((ZZ.output - YY.output)**2)/YY.output.shape[1] \
+                                                    + WW_loss.output)
+        self.vjps[Z] = lambda gg, cache, ZZ, YY, WW_loss: (ZZ.output - YY.output) * gg
+        self.vjps[Y] = lambda gg, cache, ZZ, YY, WW_loss: None
+        self.vjps[W_loss] = lambda gg, cache, ZZ, YY, WW_loss: gg
 
 
 class l2_reg_loss(ComputationNode):
@@ -279,5 +282,34 @@ class l2_reg_loss(ComputationNode):
     """
     def __init__(self, W_node_list, lmbda=.1):
         super().__init__(W_node_list)     
-        self.computation = lambda *Ws: lmbda * L2RegLoss.func([W.output for W in Ws])
-        self.vjps = {W:lambda gg, *args, WW=W: 2 * lmbda * WW.output * gg for W in W_node_list}
+        self.computation = lambda *Ws: OUTPUT(lmbda * L2RegLoss.func([W.output for W in Ws]))
+        self.vjps = {W:lambda gg, cache, *args, WW=W: 2 * lmbda * WW.output * gg for W in W_node_list}
+        
+        
+class conv2d(ComputationNode):
+    def __init__(self, V, K, b, pad=0, stride=1, dilate=1):
+        super().__init__([V, K, b])
+        self.computation = lambda VV, KK, bb: OUTPUT(*Conv2d(VV.output, 
+                                                             KK.output, 
+                                                             bb.output, 
+                                                             pad=pad, 
+                                                             stride=stride, 
+                                                             dilate=dilate,
+                                                             return_Vim2col=True
+                                                            )
+                                                    )
+        self.vjps[V] = lambda gg, cache, VV, KK, bb: _dV(gg, 
+                                                         VV.output, 
+                                                         KK.output, 
+                                                         bb.output, 
+                                                         pad=pad, 
+                                                         stride=stride, 
+                                                         dilate=dilate
+                                                        )
+        self.vjps[K] = lambda gg, cache, VV, KK, bb: _dK(gg, 
+                                                 VV.output, 
+                                                 KK.output, 
+                                                 bb.output, 
+                                                 cache
+                                                )
+        self.vjps[b] = lambda gg, cache, VV, KK, bb: _db(gg)

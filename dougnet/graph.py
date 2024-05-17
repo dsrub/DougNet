@@ -37,7 +37,8 @@ class ComputationNode:
         ----------
         None
         """
-        self.output = self.computation(*self.parents)
+        self.output, self.cache = self.computation(*self.parents)
+        
     
     def VJP(self, parent, g):
         """ Compute the vector-Jacobian product associated with this node (n) for a 
@@ -55,7 +56,7 @@ class ComputationNode:
         ----------
         the VJP as an ndarray
         """
-        return self.vjps[parent](g, *self.parents)
+        return self.vjps[parent](g, self.cache, *self.parents)
 
 
 class InputNode:

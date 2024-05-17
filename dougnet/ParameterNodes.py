@@ -11,10 +11,9 @@ class WeightNode(ParameterNode):
     prev_num_units : int
         The number of neuron units in the previous layer.
     """
-    def __init__(self, num_units, prev_num_units):
+    def __init__(self, *shape):
         super().__init__()
-        self.num_units = num_units
-        self.prev_num_units = prev_num_units
+        self.shape = shape
     
     def initialize(self, random_state=None):
         """Initialize the weight matrix
@@ -26,9 +25,9 @@ class WeightNode(ParameterNode):
             corresponds to a randomly chosen seed.)
         """
         if not random_state:
-            self.output = np.random.normal(0, 1, (self.num_units, self.prev_num_units))
+            self.output = np.random.normal(0, 1, self.shape)
         else:
-            self.output = random_state.normal(0, 1, (self.num_units, self.prev_num_units))
+            self.output = random_state.normal(0, 1, self.shape)
        
     
 class BiasNode(ParameterNode):
