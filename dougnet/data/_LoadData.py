@@ -2,8 +2,6 @@ import os
 import struct
 import numpy as np
 
-
-
 def LoadMNIST():
     """
     Load MNIST data 
@@ -45,7 +43,6 @@ def LoadMNIST():
                 images_path = current_path + '/mnist_testing_features'
                 labels_path = current_path + '/mnist_testing_labels'
 
-
             with open(labels_path, 'rb') as lbpath:
                 magic, n = struct.unpack('>II', lbpath.read(8))
                 labels = np.fromfile(lbpath, dtype=np.uint8)
@@ -62,10 +59,11 @@ def LoadMNIST():
 
         # save data in numpy format
         np.savez_compressed(current_path + '/mnist.npz', 
-        X_train=X_train,
-        y_train=y_train,
-        X_test=X_test,
-        y_test=y_test)
+                            X_train=X_train,
+                            y_train=y_train,
+                            X_test=X_test,
+                            y_test=y_test
+                            )
 
         # delete the downloaded byte format data
         os.system('rm ' + current_path + '/mnist_t* ')
