@@ -209,9 +209,8 @@ class ComputationGraph:
             if node == desired_node:
                 self.grads_[desired_node] = 1
                 ancestor_of_desired_node = True
-            
-            # only require grads of parameter nodes and computation nodes
             elif ancestor_of_desired_node and not isinstance(node, InputNode):
+                # only require grads of parameter nodes and computation nodes
                 self.grads_[node] = sum(child.VJP(node, self.grads_[child]) 
                                         for child in node.children
                                         )
@@ -219,9 +218,7 @@ class ComputationGraph:
         
 ############ graph algo utility funcs for ComputationGraph
 def _TopologicalSortDFS(node, already_visited, topo_sorted_nodes):
-    """
-    Recursive util function for _TopologicalSort.
-    """
+    """Recursive util function for _TopologicalSort."""
     already_visited.add(node) 
        
     for child in node.children:

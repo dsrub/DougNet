@@ -14,7 +14,7 @@ from dougnet.nn_functions._convnet_funcs._pool import (mp2d,
                                                        )
 
 
-######### MATH NODES #########
+################# MATH NODES ################
 class Sqr(ComputationNode):
     """An element-wise square computation node.
 
@@ -104,8 +104,9 @@ class Sum(ComputationNode):
         super().__init__([x])
         self.func = lambda xx: OUTPUT(np.sum(xx.output))
         self.vjps[x] = lambda gg, cache, xx: np.zeros_like(xx.output) + gg
-        
-######### MLP NODES #########
+       
+       
+############### MLP NODES ###############
 class Linear(ComputationNode):
     """A computation computing Z = WX + b.  The parameters W, b are created in 
     this class.
@@ -134,7 +135,7 @@ class Linear(ComputationNode):
         self.vjps[self.b] = lambda gg, cache, xx, WW, bb: np.sum(gg, axis=1).reshape(gg.shape[0], 1)
 
 
-######### ACTIVATION NODES #########
+############## ACTIVATION NODES #############
 class Sigmoid(ComputationNode):
     """An element-wise sigmoid computation node.
 
@@ -194,7 +195,7 @@ class Softmax(ComputationNode):
         self.vjps[z] = None
 
 
-######### LOSS NODES #########
+############### LOSS NODES #################
 class SoftmaxCrossEntropyLoss(ComputationNode):
     """A computation node that applies a softmax activation to its input then
     computes the cross entropy loss with a specified regularization loss for the
@@ -258,8 +259,8 @@ class L2RegLoss(ComputationNode):
         self.func = lambda *WWs: OUTPUT(l2regloss(*(W.output for W in WWs), lmbda=lmbda))
         self.vjps = {W: lambda gg, cache, *all_parents, WW=W: lmbda * WW.output * gg for W in Ws}
         
-        
-######### CONVOLUTION NODES #########
+
+################# CONVOLUTION NODES ################
 class Conv2d(ComputationNode):   
     
     #def __init__(self, V, out_channels, kernel_size, pad=0, stride=1, dilate=1, dtype=np.float32):
