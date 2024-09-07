@@ -1,6 +1,6 @@
 import numpy as np
-from dougnet._computation_graph._graph_base import ComputationNode, output_container
-from dougnet.nn_functions._activations import *
+from dougnet._computation_graph._node_base import ComputationNode, output_container
+from dougnet.functions._activations import *
 
 
 class Sigmoid(ComputationNode):
@@ -15,7 +15,7 @@ class Relu(ComputationNode):
     def __init__(self, z,):
         super().__init__([z])
         self.func = lambda zz: output_container(relu(zz.output))
-        self.vjps[z] = lambda gg, cache, zz: gg * (zz.output >= 0).astype(int).astype(zz.output.dtype)
+        self.vjps[z] = lambda gg, cache, zz: gg * (zz.output > 0).astype(int).astype(zz.output.dtype)
 
 class Tanh(ComputationNode):
     """An element-wise tanh computation node."""

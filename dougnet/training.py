@@ -1,34 +1,85 @@
 import numpy as np
-import sys
-from datetime import datetime
+from tqdm import tqdm
 
-
-def LoadMiniBatches(Xtrain, Ytrain, batch_size, seed=None):
-    """Create mini-batches"""
         
-    # make sure Ytrain is 2d
-    if Ytrain.ndim == 1:
-        Ytrain = Ytrain.reshape(1, -1)
+class DataLoader:
+    """
+    Mini-batch data loader class.
     
-    # intialize an rng if random_state is a seed
-    if type(random_state) == int:
-        random_state = np.random.RandomState(random_state)
-            
-    # randomly shuffle dataset
-    random_perm_of_cols = np.arange(Xtrain.shape[1])
-    random_state.shuffle(random_perm_of_cols)
-    Xtrain = Xtrain[:, random_perm_of_cols]
-    Ytrain = Ytrain[:, random_perm_of_cols]
-    
-    # iterate through mini batches
-    for i in range(0, Xtrain.shape[1], batch_size):
-        X_B = Xtrain[:, i:min(i + batch_size, Xtrain.shape[1])]
-        Y_B = Ytrain[:, i:min(i + batch_size, Xtrain.shape[1])]
+    Parameters
+    ------------
+    Xtrain : np.ndarray
+        Training features (can be 2-d or 4-d for image data).
+    Ytrain : np.ndarray
+        Training targets (can be 1-d or 2-d).
+    batch_size : int
+        Mini-batch size.
+    random_state: None, int or np.random.RandomState, (default=None)
+        If None, instantiate an rng, if int, instantiate and rng with
+        a seed, else use the provided rng.
+    """
+    def __init__(self, Xtrain, Ytrain, batch_size, random_state=None):
+        self.Xtrain = Xtrain
+        self.Ytrain = Ytrain
+        self.batch_size = batch_size
+        self.random_state = random_state
+        if (type(self.random_state) == int) or self.random_state is None:
+            self.random_state = np.random.RandomState(self.random_state)
         
-        yield X_B, Y_B
+        # make sure Ytrain is 2d
+        if self.Ytrain.ndim == 1:
+            self.Ytrain = self.Ytrain.reshape(1, -1)    
         
+    def load(self):
+        """load a mini-batch"""
+        if self.Xtrain.ndim == 2:
+            # randomly shuffle dataset
+            random_perm_of_cols = np.arange(self.Xtrain.shape[1])
+            self.random_state.shuffle(random_perm_of_cols)
+            self.Xtrain = self.Xtrain[:, random_perm_of_cols]
+            self.Ytrain = self.Ytrain[:, random_perm_of_cols]
+        
+            # iterate through mini batches
+            for i in range(0, self.Xtrain.shape[1], self.batch_size):
+                X_B = self.Xtrain[:, i:min(i + self.batch_size, self.Xtrain.shape[1])]
+                Y_B = self.Ytrain[:, i:min(i + self.batch_size, self.Xtrain.shape[1])]
+                yield X_B, Y_B 
+        
+        elif self.Xtrain.ndim == 4:
+            # randomly shuffle dataset
+            random_perm_of_cols = np.arange(self.Xtrain.shape[0])
+            self.random_state.shuffle(random_perm_of_cols)
+            self.Xtrain = self.Xtrain[random_perm_of_cols, :, :, :]
+            self.Ytrain = self.Ytrain[:, random_perm_of_cols]
+        
+            # iterate through mini batches
+            for i in range(0, self.Xtrain.shape[0], self.batch_size):
+                X_B = self.Xtrain[i:min(i + self.batch_size, self.Xtrain.shape[0]), :, :, :]
+                Y_B = self.Ytrain[:, i:min(i + self.batch_size, self.Xtrain.shape[0])]
+                yield X_B, Y_B
 
+        
 class ProgressHelper:
+    """
+    Track progress during training.
+    
+    Parameters
+    ------------
+    n_epochs : int
+        Number of epochs.
+    x_node : InputNode
+        Features node.
+    y_node : InputNode
+        Targets node.
+    yhat_node: ComputationNode
+        Prediction node.
+    l_node: ComputationNode
+        Loss node.
+    progress_metric: dougnet metric function
+        Track this metric during training (e.g. accuracy).
+    verbose: bool (default=True)
+        Print progress during training.
+    """
     def __init__(self, 
                  n_epochs, 
                  x_node, 
@@ -44,49 +95,53 @@ class ProgressHelper:
         self.l_node = l_node 
         self.progress_metric = progress_metric
         self.verbose = verbose
+        self._eval_time = 0
+        self._i = 0
         self.score_train_ = []
         self.loss_train_ = []
         self.score_val_ = []
         self.loss_val_ = []
-        self.start_time = datetime.now()
-        
+        if verbose:
+            self.pbar = tqdm(total=n_epochs, 
+                             desc="epoch", 
+                             unit="epoch", 
+                             bar_format='{l_bar}{bar:15}{r_bar}{bar:-10b}'
+                             )
+            
     def _compute_progress(self, X_data, Y_data):
-        """
-        Helper function to compute train and validation loss and train and
-        validation metric score.
-        """
+        """Helper function to compute train/val loss and train/val metric."""
         # compute loss and score
         self.x_node.output, self.y_node.output = X_data, Y_data
         loss = self.l_node.forward()
         Yhat = self.yhat_node.output
         score = self.progress_metric(Yhat, Y_data)
-
         return score, loss
     
-    def _verbose(self, train_score, train_loss, val_score, val_loss, epoch):
-        """Print Progress to screen (code modified from Sebastian Raschka)"""
-        # compute elapsed time
-        elapsed_timedelta = datetime.now() - self.start_time
-        elapsed_time = elapsed_timedelta.seconds + elapsed_timedelta.microseconds / 1e6
-
-        # print to screen
-        sys.stderr.write('\r%0*d/%d | Train/Val. Loss: %.2f/%.2f ' 
-                        '| Train/Val. Score: %.2f%%/%.2f%% ' 
-                        '| Elapsed Time: %.2f seconds' %
-                        (len(str(self.n_epochs)), epoch + 1, self.n_epochs, train_loss, 
-                        val_loss, train_score * 100, val_score * 100, elapsed_time)
-                        )
-        sys.stderr.flush()
-    
-    def update(self, epoch, Xtrain, Ytrain, Xval, Yval):
+    def update(self, Xtrain, Ytrain, Xval, Yval):
+        """Method to update progress.  Usually called after each epoch."""
+        self._i +=1
+        
+        # make sure in eval mode before evaluating performance
+        old_mode = self.x_node.graph.eval_mode
+        self.x_node.graph.eval()
+        
         train_score, train_loss = self._compute_progress(Xtrain, Ytrain)
         val_score, val_loss = self._compute_progress(Xval, Yval)
+        
+        # set back to old mode
+        self.x_node.graph.eval_mode = old_mode
         
         # record progress
         self.score_train_.append(train_score)
         self.loss_train_.append(train_loss)
         self.score_val_.append(val_score)
         self.loss_val_.append(val_loss)
-            
+                    
         if self.verbose:
-            self._verbose(train_score, train_loss, val_score, val_loss, epoch)
+            # print progress to screen
+            self.pbar.set_postfix(loss=str(round(train_loss, 2)) + "/" + str(round(val_loss, 2)), 
+                                  score=str(round(train_score, 2)) + "/" + str(round(val_score, 2))
+                                  )
+            self.pbar.update(1)
+            if self._i == self.n_epochs:
+                self.pbar.close()

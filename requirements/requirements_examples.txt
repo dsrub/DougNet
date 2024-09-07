@@ -1,0 +1,4 @@
+-r ./requirements.txt
+torch==2.2.2
+matplotlib
+jupyter
