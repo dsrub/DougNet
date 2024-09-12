@@ -62,29 +62,13 @@ class Dropout(ComputationNode):
      
 class Embedding(ComputationNode):
     """
-    An embedding computation node.
-    
-    X_emb
-    
-    For a 2-dimensional input, this is equivalent to  ...
-    X_ohe = ohe(X)
-    X_emb = X_ohe W_emb^T
-    
-    X [N]
-    X_ohe [N x num_embeddings]
-    W_emb [embedding_dim x num_embeddings]
-    X_emb [N x embedding_dim]
-    
-    X_emb = empty array of shape [X.shape[0] x X.shape[1] x embedding_dim]
-    for i, j in {0, 1, ... X.shape[0]} x {0, 1, ... X.shape[1]}:
-        X_emb[i, j, *] = W_emb[*, X[i, j]]
-    
+    An embedding computation node.  See the embed fuction in dn.functions for 
+    further documentation.
     """
-    
     @classmethod
-    def instantiate_weight(cls, embedding_dim, num_embeddings):
+    def instantiate_weight(cls, embedding_dim, cardinality):
         """a convenience class method to instantiate the embedding weight node"""       
-        return WeightNode(embedding_dim, num_embeddings, initializer="normal")
+        return WeightNode(embedding_dim, cardinality, initializer="normal")
     
     def __init__(self, x, weight):
         self.x = x
