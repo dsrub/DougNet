@@ -163,8 +163,6 @@ def conv2d(V, K, b=None, pad=0, stride=1, dilate=1, method="gemm", return_Vim2co
     -----
     Stride, pad and dilate should be chosen such that stride evenly divides
     H + 2 * pad - d * (H_K - 1) and W + 2 * pad - d * (W_K - 1).
-    
-    Author: Douglas Rubin
     """
     # check shapes
     message1 = "input must be rank-4 (N x C_in x H x W)"
