@@ -35,7 +35,7 @@ pip install torch
 pip install matplotlib
 ```
 
-The following code provides a toy example to train a shallow MLP on the MNIST data.  The model takes only a few seconds to train and achieves $\sim 96%$ accuracy on the validation set.  As one can see, DougNet code feels very much like PyTorch.
+The following code provides a toy example to train a shallow MLP on the MNIST data.  The model takes only a few seconds to train and achieves $\sim 96\%$ accuracy on the validation set.  As one can see, DougNet code feels very much like PyTorch.
 ```python
 import dougnet as dn
 import numpy as np
