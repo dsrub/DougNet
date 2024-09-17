@@ -79,7 +79,8 @@ model = MLP()
 graph.initialize_params(SEED_WEIGHT)
 
 # train
-L = dn.SoftmaxCrossEntropyLoss(model.module_output, model.Y)
+logits_hat = model.module_output
+L = dn.SoftmaxCrossEntropyLoss(logits_hat, model.Y)
 dataloader = dn.training.DataLoader(X_train, Y_train, BATCH_SIZE, random_state=SEED_DATA)
 optim = dn.optim.Adam(graph, eta=LR)
 for _ in range(N_EPOCHS):
@@ -88,6 +89,10 @@ for _ in range(N_EPOCHS):
         _ = L.forward()
         L.backward()
         optim.step()
+
+# compute validation accuracy (prints validation accuracy = 0.96)
+model.X.output = X_val
+print(f"validation accuracy = {round(dn.metrics.accuracy(logits_hat.forward(), Y_val), 2)}")
 ```
 
 ## Running tests
