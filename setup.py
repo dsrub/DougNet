@@ -5,7 +5,7 @@ with open("README.md", "r") as fh:
 
 setup(
     name="dougnet",
-    version="0.1.4",
+    version="0.1.5",
     author="Douglas Rubin",
     author_email="douglas.s.rubin@gmail.com",
     description="A lightweight, deep learning library written in pure Python for pedagogical purposes.",
