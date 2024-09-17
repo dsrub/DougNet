@@ -29,9 +29,10 @@ pip install dougnet
 
 ## Example usage
 
-The jupyter notebooks in the [examples](https://github.com/dsrub/DougNet/tree/master/examples) directory contain plenty of examples on how to use DougNet and highlight what the underlying code is actually doing.  Almost all of the DougNet examples are compared to PyTorch implementations and the results compare remarkably well.  PyTorch is therefore required to run the notebooks and can be installed via:
+The jupyter notebooks in the [examples](https://github.com/dsrub/DougNet/tree/master/examples) directory contain plenty of examples on how to use DougNet and highlight what the underlying code is actually doing.  Almost all of the DougNet examples are compared to PyTorch implementations and the results compare remarkably well.  PyTorch is therefore required to run the notebooks, as well as matplotlib. Both can be installed via:
 ```bash
 pip install torch
+pip install matplotlib
 ```
 
 ## Running tests
