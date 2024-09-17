@@ -41,35 +41,6 @@ class ComputationGraph:
         for parameter in self.parameters:
             if hasattr(parameter, "initialize") and parameter.output is None:
                 parameter.initialize(random_state)
-            
-    def forward(self, desired_node):
-        """
-        Compute the forward pass to populate all outputs in each computation node up until
-        desired_node and return desired_node.output.  desired_node should be a computation 
-        node.
-        """
-        self._TopologicalSort()
-        for node in self.computations:
-            node.compute()
-            if node == desired_node:
-                return desired_node.output
-    
-    def backward(self, desired_node):
-        """
-        Run backward pass to compute gradients of all parameter and computation nodes up 
-        until a desired node in the graph.  Note that the desired node must have scalar output. 
-        """
-        self._TopologicalSort()
-        
-        self.grads_ = {}
-        ancestor_of_desired_node = False
-        for node in reversed(self.parameters + self.computations):
-            if node == desired_node:
-                self.grads_[desired_node] = 1
-                ancestor_of_desired_node = True
-            elif ancestor_of_desired_node:
-                self.grads_[node] = sum(child.VJP(node, self.grads_[child]) 
-                                        for child in node.children)
                 
     def delete_nonparams(self):
         """ Delete all input nodes and computation nodes from graph (useful for RNNs)."""

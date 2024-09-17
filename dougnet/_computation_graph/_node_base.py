@@ -115,32 +115,51 @@ class ComputationNode(Node):
     """
     def __init__(self, parents=[]):
         self.parents = parents
-        self.func = None
-        self.vjps = {}
+        self.func = None # function to perform computation
+        self.vjps = {} # vjp functions associated with this computation wrt each parent
         
         # append this node to the children lists of all parent nodes
         for parent in parents:
             parent.children.append(self)
         super().__init__()
-        
-    def compute(self):
+    
+    def _compute(self):
         """Compute output associated with this node and store in the output attribute."""
         self.output, self.cache = self.func(*self.parents)
-    
-    def VJP(self, parent, g):
+        
+    def _vjp(self, parent, g):
         """ 
-        Compute the vector-Jacobian product associated with this node for a specified 
-        parent node, parent, given a gradient tensor, g.
+        Compute the vector-Jacobian product associated with this node wrt a specified 
+        parent node, given a gradient tensor.
         """
         return self.vjps[parent](g, self.cache, *self.parents)
     
     def forward(self):
-        """Run forward method in graph data structure up until this node and return output."""        
-        return self.graph.forward(self)
-    
+        """Run forward pass in graph up until this node and return output."""        
+        self.graph._TopologicalSort()
+        for node in self.graph.computations:
+            node._compute()
+            if node == self:
+                return self.output
+        
     def backward(self):
-        """Run backward method in graph data structure up until this node."""        
-        self.graph.backward(self)
+        """
+        Run backward pass in graph to compute gradients of all parameter and computation 
+        nodes up until this node.  Note that if invoking this method, the computation 
+        associated with this node should have scalar output (e.g. this node could compute 
+        a loss). 
+        """
+        self.graph._TopologicalSort()
+        
+        self.graph.grads_ = {}
+        ancestor_of_self = False
+        for node in reversed(self.graph.parameters + self.graph.computations):
+            if node == self:
+                self.graph.grads_[self] = 1
+                ancestor_of_self = True
+            elif ancestor_of_self:
+                self.graph.grads_[node] = sum(child._vjp(node, self.graph.grads_[child]) 
+                                              for child in node.children)
 
 
 # DEFINE VARIOUS COMPUTATION NODES USED IN MAGIC METHODS IN THE Node BASE CLASS 
