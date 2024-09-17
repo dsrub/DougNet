@@ -13,7 +13,7 @@ setup(
     long_description_content_type="text/markdown",
     url="https://github.com/dsrub/DougNet",
     packages=find_packages(exclude=['examples', 'requirements']),
-    install_requires=["numpy==1.24.4", "numba==0.58.1", "tqdm==4.66.5"],
+    install_requires=["numpy", "numba", "tqdm"],
     license="MIT",
     classifiers=[
         "Programming Language :: Python :: 3.8",
