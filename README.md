@@ -37,11 +37,12 @@ pip install matplotlib
 
 ## Running tests
 
-To run tests locally, clone DougNet and install the dependencies:
+To run tests locally, install DougNet in editable mode:
 ```bash
 git clone https://github.com/dsrub/DougNet.git
 cd DougNet
 pip install -r ./requirements/requirements_tests.txt
+pip install --editable .
 ```
 This will install DougNet as well as PyTorch, which most unit tests use to verify the correctness of DougNet, and pytest for running the tests.
 
