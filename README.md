@@ -35,6 +35,61 @@ pip install torch
 pip install matplotlib
 ```
 
+The following code provides a toy example to train a shallow MLP on the MNIST data.  The model takes only a few seconds to train and achieves $\sim 96%$ accuracy on the validation set.  As one can see, DougNet code feels very much like PyTorch.
+```python
+import dougnet as dn
+import numpy as np
+
+SEED_WEIGHT = 1
+SEED_DATA = 2
+N_EPOCHS = 10
+BATCH_SIZE = 100
+LR = 0.001
+```
+```python
+# load data
+def PrepData(X, y):
+    """one hot encode Ys and standardize X"""
+    Y_ohe = np.zeros((y.size, 10))
+    Y_ohe[np.arange(y.size), y] = 1
+    X = ((X / 255.) - .5) * 2
+    return X.astype(np.float32).T, Y_ohe.astype(np.float32).T
+
+X_train, Y_train, X_val, Y_val = dn.data.LoadMNIST()
+X_train, Y_train = PrepData(X_train, Y_train)
+X_val, Y_val = PrepData(X_val, Y_val)
+```
+```python
+# define model
+class MLP(dn.Module):
+    def __init__(self, n_neurons=100):
+        self.n_neurons = n_neurons
+        self.X = dn.InputNode()
+        self.Y = dn.InputNode()
+        super().__init__()
+        
+    def forward_(self):
+        z = dn.Linear(self.X, self.n_neurons, 28 * 28, weight_init="xavier")
+        a = dn.Relu(z.module_output)
+        return dn.Linear(a, 10, self.n_neurons).module_output
+
+# instantiate graph/model and initialize weights
+graph = dn.ComputationGraph()
+model = MLP()
+graph.initialize_params(SEED_WEIGHT)
+
+# train
+L = dn.SoftmaxCrossEntropyLoss(model.module_output, model.Y)
+dataloader = dn.training.DataLoader(X_train, Y_train, BATCH_SIZE, random_state=SEED_DATA)
+optim = dn.optim.Adam(graph, eta=LR)
+for _ in range(N_EPOCHS):
+    for X_B, Y_B in dataloader.load():
+        model.X.output, model.Y.output = X_B, Y_B
+        _ = L.forward()
+        L.backward()
+        optim.step()
+```
+
 ## Running tests
 
 To run tests locally, install DougNet in editable mode:

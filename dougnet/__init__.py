@@ -3,6 +3,7 @@ import dougnet.nograph
 import dougnet.functions
 import dougnet.metrics
 import dougnet.training
+import dougnet.data
 
 # computational graph
 from dougnet._computation_graph._graph_base import ComputationGraph
