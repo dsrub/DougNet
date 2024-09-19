@@ -11,7 +11,7 @@ def _zeros(shape, rng, dtype):
     return np.zeros(shape, dtype=dtype)
 
 def _ones(shape, rng, dtype):
-    """zero initialization"""
+    """one initialization"""
     return np.ones(shape, dtype=dtype)
 
 def _normal(shape, rng, dtype, mu=0, std=1):

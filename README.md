@@ -6,7 +6,7 @@
 
 DougNet is a deep learning api written entirely in python and is intended as a pedogogical tool for understanding the inner-workings of a deep learning library.  The api is written from scratch and nowhere uses commercial deep learning libraries like [PyTorch](https://pytorch.org) or [TensorFlow](https://www.tensorflow.org) (although it does utilize PyTorch to unit test for correctness).  For ease of use, the syntax and api of DougNet is very similar to that of PyTorch.  Unlike PyTorch, DougNet was written so that its source code is *readable*.  The source code is lightweight: the amount of code and type-checking is kept to a minimum and the file structure is compact.  For readability, the source code is also written entirely in python, using [Numpy's](https://numpy.org) `ndarray` data structure as its main tensor api.  A few computationally intensive functions require [Numba](https://numba.pydata.org) which compiles python functions to optimized machine code and allows for multi-threading.  In keeping with DougNet's philosophy of readability, Numba is a good choice for speeding up slow functions since it requires only a python decorator function and usually almost no changes to the python code.
 
-Even though DougNet was not written for performance, it compares surprisingly well to PyTorch.  In most cases it seems that DougNet is only a factor of $\sim 1$ to $2$ times slower than the equivalent PyTorch cpu implementation.
+Even though DougNet was not written for performance, it compares surprisingly well to PyTorch.  In most cases it seems that DougNet is only a factor of $\sim$1 to 2 times slower than the equivalent PyTorch cpu implementation.
 
 Some of the math and algorithms behind DougNet can be complicated.  For example, understanding the automatic differentiation engine that powers DougNet requires knowledge of graph data structures, dynamic programming, matrix calculus and tensor contractions.  I am currently working on a companion text, possibly a book or a blog, reviewing the math behind deep learning libraries.  
 
@@ -29,13 +29,66 @@ pip install dougnet
 
 ## Example usage
 
-The jupyter notebooks in the [examples](https://github.com/dsrub/DougNet/tree/master/examples) directory contain plenty of examples on how to use DougNet and highlight what the underlying code is actually doing.  Almost all of the DougNet examples are compared to PyTorch implementations and the results compare remarkably well.  PyTorch is therefore required to run the notebooks, as well as matplotlib. Both can be installed via:
+The jupyter notebooks in the [examples](https://github.com/dsrub/DougNet/tree/master/examples) directory contain plenty of examples on how to use DougNet and highlight how the underlying code *actually* works.  Almost all of the DougNet examples are compared to PyTorch implementations and the results agree remarkably well.  PyTorch is therefore required to run the notebooks, as well as matplotlib. Both can be installed via:
 ```bash
 pip install torch
 pip install matplotlib
 ```
 
-The following code provides a toy example to train a shallow MLP on the MNIST data.  The model takes only a few seconds to train and achieves $\sim 96\%$ accuracy on the validation set.  As one can see, DougNet code feels very much like PyTorch.
+### Linear regression
+
+The following toy example uses DougNet to train a linear regression model.
+```python
+import dougnet as dn
+import numpy as np
+
+N_EPOCHS = 1_000
+N_FEAT = 3
+N_EXAMPLES = 100
+LR = 0.1
+```
+```python
+# create data according to Y = beta X + b + eps
+rng = np.random.RandomState(1)
+
+X_train = rng.uniform(0, 1, (N_FEAT, N_EXAMPLES)) # examples in cols of design matrix
+eps = rng.normal(0, .01, (1, N_EXAMPLES))
+beta = np.array([.1, .2, .3])
+Y_train = beta @ X_train + .4 + eps
+```
+```python
+# instantiate computation graph
+graph = dn.ComputationGraph()
+
+# data nodes
+X = dn.InputNode(X_train)
+Y = dn.InputNode(Y_train)
+
+# output layer
+W = dn.ParameterNode(np.zeros((1, 3)))
+b = dn.ParameterNode(0.)
+Yhat = W @ X + b
+
+# loss node
+L = dn.L2Loss(Yhat, Y)
+
+# train
+for _ in range(N_EPOCHS):
+    # run forward and backward methods
+    _ = L.forward()
+    L.backward()
+
+    # update parameters 
+    for parameter in graph.parameters:
+        parameter.output -= LR * graph.grads_[parameter]
+
+print(W.output) # prints [[0.09982835 0.20112498 0.30432221]]
+print(b.output) # prints [[0.39778574]]
+```
+
+### MLP
+
+As a slightly more complex example, the following code trains a shallow MLP on the MNIST data.  In contrast to the example above, this code utilizes some of the convenience functionality provided by DougNet, such as: a module class to package model code, weight initialization methods, mini-batch data loaders and optimization algos to update parameters.  The model takes only a few seconds to train and achieves $\sim$96% accuracy on the validation set.  As one can see, DougNet code feels very much like PyTorch.
 ```python
 import dougnet as dn
 import numpy as np
