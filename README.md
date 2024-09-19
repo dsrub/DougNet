@@ -6,7 +6,7 @@
 
 DougNet is a deep learning api written entirely in python and is intended as a pedogogical tool for understanding the inner-workings of a deep learning library.  The api is written from scratch and nowhere uses commercial deep learning libraries like [PyTorch](https://pytorch.org) or [TensorFlow](https://www.tensorflow.org) (although it does utilize PyTorch to unit test for correctness).  For ease of use, the syntax and api of DougNet is very similar to that of PyTorch.  Unlike PyTorch, DougNet was written so that its source code is *readable*.  The source code is lightweight: the amount of code and type-checking is kept to a minimum and the file structure is compact.  For readability, the source code is also written entirely in python, using [Numpy's](https://numpy.org) `ndarray` data structure as its main tensor api.  A few computationally intensive functions require [Numba](https://numba.pydata.org) which compiles python functions to optimized machine code and allows for multi-threading.  In keeping with DougNet's philosophy of readability, Numba is a good choice for speeding up slow functions since it requires only a python decorator function and usually almost no changes to the python code.
 
-Even though DougNet was not written for performance, it compares surprisingly well to PyTorch.  In most cases it seems that DougNet is only a factor of $\sim$1 to 2 times slower than the equivalent PyTorch cpu implementation.
+Even though DougNet was not written for performance, it compares surprisingly well to PyTorch.  In most cases it seems that DougNet is only a factor of $\sim 1$ to $2$ times slower than the equivalent PyTorch cpu implementation.
 
 Some of the math and algorithms behind DougNet can be complicated.  For example, understanding the automatic differentiation engine that powers DougNet requires knowledge of graph data structures, dynamic programming, matrix calculus and tensor contractions.  I am currently working on a companion text, possibly a book or a blog, reviewing the math behind deep learning libraries.  
 
@@ -88,7 +88,7 @@ print(b.output) # prints [[0.39778574]]
 
 ### MLP
 
-As a slightly more complex example, the following code trains a shallow MLP on the MNIST data.  In contrast to the example above, this code utilizes some of the convenience functionality provided by DougNet, such as: a module class to package model code, weight initialization methods, mini-batch data loaders and optimization algos to update parameters.  The model takes only a few seconds to train and achieves $\sim$96% accuracy on the validation set.  As one can see, DougNet code feels very much like PyTorch.
+As a slightly more complex example, the following code trains a shallow MLP on the MNIST data.  In contrast to the example above, this code utilizes some of the convenience functionality provided by DougNet, such as: a module class to package model code, weight initialization methods, mini-batch data loaders and optimization algos to update parameters.  The model takes only a few seconds to train and achieves $\sim 96$% accuracy on the validation set.  As one can see, DougNet code feels very much like PyTorch.
 ```python
 import dougnet as dn
 import numpy as np
